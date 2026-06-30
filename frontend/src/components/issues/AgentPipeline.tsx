@@ -1,19 +1,25 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  Sparkles, CheckCircle2, Loader2, PlayCircle, Eye, 
-  CopyCheck, AlertTriangle, TrendingUp, Landmark, ListChecks 
+import {
+  Sparkles, Loader2,
+  Eye, CopyCheck, AlertTriangle, TrendingUp, Landmark, ListChecks,
+  type LucideIcon
 } from "lucide-react";
 
 interface AgentStep {
   name: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   purpose: string;
   confidence: number;
   duration: number;
   log: string;
+}
+
+interface Predictions {
+  deteriorationForecast: string;
+  environmentalImpact?: string;
 }
 
 interface AgentPipelineProps {
@@ -21,7 +27,7 @@ interface AgentPipelineProps {
   severity: string;
   isSimulating?: boolean;
   onSimulationComplete?: () => void;
-  predictions?: any;
+  predictions?: Predictions;
   repairChecklist?: string[];
   department?: string;
   priorityScore?: number;
@@ -103,7 +109,7 @@ export default function AgentPipeline({
     }
 
     setActiveStepIndex(0);
-    const intervals: NodeJS.Timeout[] = [];
+    const intervals: ReturnType<typeof setTimeout>[] = [];
 
     // Simulate each agent starting and finishing in sequence
     steps.forEach((step, idx) => {
@@ -118,6 +124,7 @@ export default function AgentPipeline({
     });
 
     return () => intervals.forEach(clearTimeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSimulating]);
 
   return (
@@ -141,23 +148,22 @@ export default function AgentPipeline({
         {steps.map((step, idx) => {
           const isCompleted = activeStepIndex > idx;
           const isActive = activeStepIndex === idx;
-          const isPending = activeStepIndex < idx;
           const Icon = step.icon;
 
           return (
-            <div 
-              key={step.name} 
-              className={`p-4 rounded-xl border transition-all-300 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-                isActive 
-                  ? "bg-purple-950/30 border-purple-500/40 shadow-lg shadow-purple-500/10 scale-[1.01]" 
-                  : (isCompleted 
-                      ? "bg-emerald-950/5 border-emerald-500/10 shadow-sm shadow-emerald-500/5" 
+            <div
+              key={step.name}
+              className={`p-4 rounded-xl border transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                isActive
+                  ? "bg-purple-950/30 border-purple-500/40 shadow-lg shadow-purple-500/10 scale-[1.01]"
+                  : (isCompleted
+                      ? "bg-emerald-950/5 border-emerald-500/10 shadow-sm shadow-emerald-500/5"
                       : "bg-slate-900/10 border-transparent opacity-30")
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-lg transition-all-300 ${isActive ? "bg-purple-500/20 text-purple-400 animate-pulse-glow" : (isCompleted ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-900 text-slate-500")}`}>
-                  <Icon className="w-4.5 h-4.5" />
+                <div className={`p-2 rounded-lg transition-all duration-300 ${isActive ? "bg-purple-500/20 text-purple-400 animate-pulse" : (isCompleted ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-900 text-slate-500")}`}>
+                  <Icon className="w-4 h-4" />
                 </div>
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
@@ -168,7 +174,7 @@ export default function AgentPipeline({
                   </div>
                   <p className="text-[10px] text-slate-400 font-medium">{step.purpose}</p>
                   {isCompleted && (
-                    <p className="text-[9px] text-purple-300 font-semibold italic mt-1 leading-snug">"{step.log}"</p>
+                    <p className="text-[9px] text-purple-300 font-semibold italic mt-1 leading-snug">&ldquo;{step.log}&rdquo;</p>
                   )}
                 </div>
               </div>
@@ -183,7 +189,7 @@ export default function AgentPipeline({
                   isActive ? (
                     <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
                   ) : (
-                    <span className="w-2 h-2 rounded-full bg-slate-700" />
+                    <span className="w-2 h-2 rounded-full bg-slate-700 block" />
                   )
                 )}
               </div>

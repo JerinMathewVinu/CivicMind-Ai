@@ -1,11 +1,31 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { 
-  MapPin, Flame, Navigation, ShieldCheck, Landmark, 
-  School, HeartPulse, Layers, Compass, Filter, Calendar 
+import {
+  MapPin, Flame, Navigation,
+  School, HeartPulse, Layers, Compass, Filter, Landmark
 } from "lucide-react";
 import type { Issue } from "@/types";
+
+// Minimal type for the Google Maps API on window
+interface GoogleMapsWindow {
+  maps: {
+    Map: new (el: HTMLElement, opts: Record<string, unknown>) => Record<string, unknown>;
+    TrafficLayer: new () => { setMap: (map: unknown) => void };
+    Marker: new (opts: Record<string, unknown>) => { addListener: (evt: string, cb: () => void) => void };
+    LatLng: new (lat: number, lng: number) => unknown;
+    Point: new (x: number, y: number) => unknown;
+    visualization: {
+      HeatmapLayer: new (opts: Record<string, unknown>) => unknown;
+    };
+  };
+}
+
+declare global {
+  interface Window {
+    google?: { maps: GoogleMapsWindow["maps"] };
+  }
+}
 
 interface GoogleMapProps {
   issues: Issue[];
@@ -24,7 +44,6 @@ export default function GoogleMap({
   activeIssueId,
   onSelectIssue,
   showRouting = false,
-  routingPoints = []
 }: GoogleMapProps) {
   // Config states
   const [mapType, setMapType] = useState<"standard" | "satellite">("standard");
@@ -33,7 +52,7 @@ export default function GoogleMap({
     traffic: false,
     boundaries: true
   });
-  
+
   const [nearbyFilter, setNearbyFilter] = useState<"none" | "hospitals" | "schools" | "police">("none");
 
   // Filters
@@ -64,7 +83,9 @@ export default function GoogleMap({
   useEffect(() => {
     if (!isGoogleLoaded || !mapRef.current || !window.google) return;
 
-    const mapInstance = new window.google.maps.Map(mapRef.current, {
+    const gmaps = window.google.maps;
+
+    const mapInstance = new gmaps.Map(mapRef.current, {
       center: selectedCoords || { lat: 12.9716, lng: 77.5946 }, // Bangalore default
       zoom: 13,
       mapTypeId: mapType === "satellite" ? "hybrid" : "roadmap",
@@ -75,18 +96,20 @@ export default function GoogleMap({
         { featureType: "road", elementType: "geometry", stylers: [{ color: "#374151" }] },
         { featureType: "water", elementType: "geometry", stylers: [{ color: "#0b1329" }] }
       ]
-    });
+    }) as unknown as {
+      addListener: (evt: string, cb: (e: { latLng: { lat: () => number; lng: () => number } }) => void) => void;
+    };
 
     // Traffic Layer
     if (layers.traffic) {
-      const trafficLayer = new window.google.maps.TrafficLayer();
+      const trafficLayer = new gmaps.TrafficLayer();
       trafficLayer.setMap(mapInstance);
     }
 
     // Heatmap Layer
     if (layers.heatmap) {
-      const heatmapPoints = issues.map(iss => new window.google.maps.LatLng(iss.location.lat, iss.location.lng));
-      const heatmap = new window.google.maps.visualization.HeatmapLayer({
+      const heatmapPoints = issues.map(iss => new gmaps.LatLng(iss.location.lat, iss.location.lng));
+      new gmaps.visualization.HeatmapLayer({
         data: heatmapPoints,
         map: mapInstance
       });
@@ -101,10 +124,10 @@ export default function GoogleMap({
         fillOpacity: 1.0,
         strokeWeight: 1,
         scale: 1.5,
-        anchor: new window.google.google.maps.Point(12, 22)
+        anchor: new gmaps.Point(12, 22)
       };
 
-      const marker = new window.google.maps.Marker({
+      const marker = new gmaps.Marker({
         position: { lat: iss.location.lat, lng: iss.location.lng },
         map: mapInstance,
         icon: pinSvg,
@@ -118,7 +141,7 @@ export default function GoogleMap({
 
     // Map Click Listener to select coords
     if (onSelectCoords) {
-      mapInstance.addListener("click", (e: any) => {
+      mapInstance.addListener("click", (e: { latLng: { lat: () => number; lng: () => number } }) => {
         onSelectCoords({ lat: e.latLng.lat(), lng: e.latLng.lng() });
       });
     }
@@ -132,6 +155,9 @@ export default function GoogleMap({
     const matchStat = statusFilter === "all" || iss.status === statusFilter;
     return matchCat && matchSev && matchStat;
   });
+
+  // Suppress unused variable warning for mapType setter (used in UI below)
+  void setMapType;
 
   return (
     <div className="relative w-full h-[480px] bg-slate-950/60 rounded-2xl border border-white/5 overflow-hidden flex flex-col">
@@ -214,7 +240,7 @@ export default function GoogleMap({
 
             {/* Simulated route line for officer portal */}
             {showRouting && (
-              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true">
                 <path d="M 120 180 L 280 150 L 450 320" fill="none" stroke="#818cf8" strokeWidth="3" strokeDasharray="6" />
                 <circle cx="120" cy="180" r="5" fill="#f59e0b" className="animate-pulse" />
                 <circle cx="450" cy="320" r="5" fill="#ef4444" className="animate-pulse" />
@@ -236,7 +262,7 @@ export default function GoogleMap({
             {nearbyFilter === "schools" && (
               <>
                 <div className="absolute top-[40%] right-[20%] p-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 flex items-center gap-1 text-[9px] font-bold">
-                  <School className="w-3.5 h-3.5" /> St. Mary's School
+                  <School className="w-3.5 h-3.5" /> St. Mary&apos;s School
                 </div>
                 <div className="absolute bottom-[35%] left-[25%] p-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 flex items-center gap-1 text-[9px] font-bold">
                   <School className="w-3.5 h-3.5" /> Sector 2 High
@@ -266,7 +292,7 @@ export default function GoogleMap({
                   className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition p-1 rounded-xl flex items-center gap-1.5 group z-10 ${isActive ? "bg-slate-900 border border-white/20 scale-110 shadow-xl" : "hover:bg-slate-900/50"}`}
                 >
                   <span className={`w-3 h-3 rounded-full ring-4 ${markerColor} ${isActive ? "animate-pulse" : ""}`} />
-                  <span className={`text-[10px] text-white font-bold max-w-0 overflow-hidden group-hover:max-w-[120px] transition-all block`}>{iss.title.slice(0, 15)}...</span>
+                  <span className="text-[10px] text-white font-bold max-w-0 overflow-hidden group-hover:max-w-[120px] transition-all block">{iss.title.slice(0, 15)}...</span>
                 </button>
               );
             })}
@@ -285,7 +311,7 @@ export default function GoogleMap({
             {/* Click Grid Handler Overlay */}
             {!showRouting && onSelectCoords && (
               <div className="absolute inset-0 grid grid-cols-10 grid-rows-10">
-                {Array.from({ length: 10 }).map((_, r) => 
+                {Array.from({ length: 10 }).map((_, r) =>
                   Array.from({ length: 10 }).map((_, c) => (
                     <button
                       key={`${r}-${c}`}
@@ -307,13 +333,13 @@ export default function GoogleMap({
         <div className="absolute right-4 top-4 bg-slate-900/95 border border-white/10 p-2.5 rounded-xl space-y-1.5 z-10 w-44">
           <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Nearby Services</span>
           {[
-            { id: "hospitals", label: "Hospitals & Clinics", icon: HeartPulse, color: "text-rose-400" },
-            { id: "schools", label: "Schools & Colleges", icon: School, color: "text-yellow-400" },
-            { id: "police", label: "Police Stations", icon: Landmark, color: "text-blue-400" }
+            { id: "hospitals" as const, label: "Hospitals & Clinics", icon: HeartPulse, color: "text-rose-400" },
+            { id: "schools" as const, label: "Schools & Colleges", icon: School, color: "text-yellow-400" },
+            { id: "police" as const, label: "Police Stations", icon: Landmark, color: "text-blue-400" }
           ].map(serv => (
             <button
               key={serv.id}
-              onClick={() => setNearbyFilter(nearbyFilter === serv.id ? "none" : serv.id as any)}
+              onClick={() => setNearbyFilter(nearbyFilter === serv.id ? "none" : serv.id)}
               className={`w-full text-left p-1.5 rounded-lg flex items-center gap-2 text-[10px] font-semibold transition border ${
                 nearbyFilter === serv.id ? "bg-white/5 border-white/20 text-white" : "border-transparent text-slate-400 hover:text-white"
               }`}

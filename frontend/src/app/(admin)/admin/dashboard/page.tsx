@@ -58,37 +58,41 @@ export default function AdminDashboard() {
   // Incidents list for map plots
   const [issues, setIssues] = useState<Issue[]>([
     {
-      id: "iss_1",
-      title: "Deep pothole causing vehicle swerving",
-      description: "A hazardous pothole has formed right in the middle of the left lane.",
-      category: "pothole",
-      status: "reported",
-      severity: "critical",
-      priorityScore: 88.5,
-      location: { lat: 4, lng: 5 },
-      address: "Main Street Sector 4",
-      imageUrls: [],
-      reporterId: "rep_1",
-      reporterName: "Ananya Sharma",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
+  id: "iss_1",
+  title: "Deep pothole causing vehicle swerving",
+  description: "A hazardous pothole has formed right in the middle of the left lane.",
+  category: "pothole",
+  status: "reported",
+  severity: "critical",
+  priorityScore: 88.5,
+  location: { lat: 4, lng: 5 },
+  address: "Main Street Sector 4",
+  imageUrls: [],
+  reporterId: "rep_1",
+  reporterName: "Ananya Sharma",
+  upvotes: 12,
+  verifications: 8,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+},
     {
-      id: "iss_2",
-      title: "Overflowing garbage disposal near park",
-      description: "Public bin is completely overflowing. Garbage has spilled onto the sidewalk.",
-      category: "garbage",
-      status: "assigned",
-      severity: "high",
-      priorityScore: 72.0,
-      location: { lat: 7, lng: 3 },
-      address: "Outer Ring Rd",
-      imageUrls: [],
-      reporterId: "rep_2",
-      reporterName: "Rohan Varma",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
+  id: "iss_2",
+  title: "Overflowing garbage disposal near park",
+  description: "Public bin is completely overflowing. Garbage has spilled onto the sidewalk.",
+  category: "garbage",
+  status: "assigned",
+  severity: "high",
+  priorityScore: 72.0,
+  location: { lat: 7, lng: 3 },
+  address: "Outer Ring Rd",
+  imageUrls: [],
+  reporterId: "rep_2",
+  reporterName: "Rohan Varma",
+  upvotes: 7,
+  verifications: 3,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+}
   ]);
 
   useEffect(() => {
@@ -245,11 +249,11 @@ export default function AdminDashboard() {
           <div className="p-6 border-b border-white/5 bg-white/5 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-300">
-                {profile.displayName.slice(0, 2).toUpperCase()}
+              {profile?.displayName?.slice(0, 2).toUpperCase() || "AD"}
               </div>
               <div>
-                <h4 className="font-semibold text-white text-sm leading-tight">{profile.displayName}</h4>
-                <span className="text-slate-400 text-xs font-medium capitalize">{profile.role}</span>
+                <h4 className="font-semibold text-white text-sm leading-tight">{profile?.displayName || "Administrator"}</h4>
+                <span className="text-slate-400 text-xs font-medium capitalize">{profile?.role || "admin"}</span>
               </div>
             </div>
             <div className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-white/5">
@@ -277,7 +281,7 @@ export default function AdminDashboard() {
                     key={roleOption}
                     onClick={() => switchRole(roleOption)}
                     className={`py-1.5 rounded text-[9px] font-bold uppercase border transition cursor-pointer ${
-                      profile.role === roleOption 
+                      profile?.role === roleOption
                         ? "bg-purple-600/20 border-purple-500/30 text-purple-400" 
                         : "bg-transparent border-transparent text-slate-400 hover:text-white hover:bg-white/5"
                     }`}

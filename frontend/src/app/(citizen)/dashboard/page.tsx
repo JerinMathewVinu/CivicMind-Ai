@@ -265,7 +265,7 @@ export default function Dashboard() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as any)}
+                  onClick={() => setActiveTab(item.id as "dashboard" | "report" | "leaderboard")}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition cursor-pointer ${
                     isSelected 
                       ? "bg-purple-600/10 text-purple-400 border border-purple-500/20" 

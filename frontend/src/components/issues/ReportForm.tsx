@@ -270,7 +270,7 @@ export function ReportForm({ onSubmit, onCancel, selectedCoords }: ReportFormPro
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Confirm / Edit Category</label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as any)}
+                  onChange={(e) => setCategory(e.target.value as IssueCategory)}
                   className="w-full px-4 py-3.5 rounded-xl bg-slate-900 border border-white/10 text-sm text-white focus:border-purple-500 outline-none transition cursor-pointer font-semibold"
                 >
                   {Object.entries(CATEGORY_LABELS).map(([cat, label]) => (

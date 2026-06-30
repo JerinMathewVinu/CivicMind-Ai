@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import type { UserProfile } from "@/types";
+import type { UserProfile, UserRole } from "@/types";
 import { toast } from "sonner";
 
 
@@ -58,11 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           uid: "demo_user_123",
           email: "demo@civicmind.ai",
           displayName: "Jerin Patel (Judge)",
-          role: "admin",
-          photoURL: null,
+          role: "admin" as UserRole,
           points: 180,
           badges: ["Welcome Citizen", "Pothole Sentinel"],
-          department: null,
           createdAt: new Date().toISOString()
         });
       }
@@ -79,16 +77,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       redirectByRole(data.user.role);
     } catch (err) {
       // Offline fallback login for demo presentation
-      const resolvedRole = username.includes("admin") ? "admin" : (username.includes("officer") ? "officer" : "citizen");
-      const localProfile = {
+      const resolvedRole: UserRole = username.includes("admin")
+        ? "admin"
+        : username.includes("officer")
+          ? "officer"
+          : "citizen";
+      const localProfile: UserProfile = {
         uid: "demo_user_123",
         email: "demo@civicmind.ai",
-        displayName: resolvedRole === "admin" ? "Jerin Patel (Admin)" : (resolvedRole === "officer" ? "Jerin Patel (Officer)" : "Jerin Patel (Citizen)"),
+        displayName:
+          resolvedRole === "admin"
+            ? "Jerin Patel (Admin)"
+            : resolvedRole === "officer"
+              ? "Jerin Patel (Officer)"
+              : "Jerin Patel (Citizen)",
         role: resolvedRole,
-        photoURL: null,
         points: 180,
         badges: ["Welcome Citizen"],
-        department: null,
         createdAt: new Date().toISOString()
       };
       setProfile(localProfile);
@@ -101,15 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await api.post("/auth/register", { username, email, password, displayName });
       await login(username, password);
     } catch (err) {
-      const localProfile = {
+      const localProfile: UserProfile = {
         uid: "demo_user_123",
         email,
         displayName,
-        role: "citizen",
-        photoURL: null,
+        role: "citizen" as UserRole,
         points: 10,
         badges: ["Welcome Citizen"],
-        department: null,
         createdAt: new Date().toISOString()
       };
       setProfile(localProfile);
@@ -141,10 +144,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const switchRole = (role: "citizen" | "officer" | "admin") => {
     if (profile) {
-      const updatedProfile = { 
-        ...profile, 
-        role, 
-        displayName: role === "admin" ? "Jerin Patel (Admin)" : (role === "officer" ? "Jerin Patel (Officer)" : "Jerin Patel (Citizen)")
+      const updatedProfile: UserProfile = {
+        ...profile,
+        role,
+        displayName:
+          role === "admin"
+            ? "Jerin Patel (Admin)"
+            : role === "officer"
+              ? "Jerin Patel (Officer)"
+              : "Jerin Patel (Citizen)"
       };
       setProfile(updatedProfile);
       redirectByRole(role);

@@ -187,10 +187,10 @@ export default function DigitalTwinMap() {
                   key={ward.id}
                   points={ward.points}
                   onClick={() => setActiveWardId(ward.id)}
+                  aria-label={`${ward.name} (Health: ${ward.healthScore}%)`}
                   className={`cursor-pointer transition-all duration-300 stroke-2 ${ward.fillColor} ${ward.strokeColor} ${
                     isActive ? "stroke-[4px] fill-purple-500/20" : ""
                   }`}
-                  title={`${ward.name} (Health: ${ward.healthScore}%)`}
                 />
               );
             })}
